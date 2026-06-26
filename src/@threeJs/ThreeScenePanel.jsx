@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import styled from 'styled-components';
 
-import { useGraphView, useGraphInteraction } from '@graphContext';
-import { filterGraph3DScene } from '@graphContext/filterGraph3DScene';
+import { useGraphView, useGraphInteraction, filterGraph3DScene } from '@graphContext';
 
 import { buildGraph3DScene } from './buildGraph3DScene';
 import { GraphScene3D } from './GraphScene3D';

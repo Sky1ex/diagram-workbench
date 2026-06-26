@@ -396,6 +396,8 @@ export default function YFilesGraphPanel({
 		if (structureChanged) {
 			runtime.scheduleLayout(true);
 		}
+		// expandedKey сериализует expandedHostFlowIds (Set нестабилен по ссылке в deps)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [
 		canvasReady,
 		document,
@@ -403,8 +405,8 @@ export default function YFilesGraphPanel({
 		sceneVisibilityActive,
 		visibility.visibleNodeIds,
 		visibility.visibleEdgeIds,
-		visibility.noMatchesInView]
-	);
+		visibility.noMatchesInView
+	]);
 
 	useEffect(() => {
 		if (!yfilesControllerId || !canvasReady) return;

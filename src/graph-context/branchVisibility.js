@@ -110,7 +110,7 @@ export function collectNodesHiddenByBranchAnchor(
 	return hidden;
 }
 
-export function collectAllBranchHiddenNodes(
+function collectAllBranchHiddenNodes(
 	hiddenBranchAnchors,
 	document,
 	expandedHostFlowIds

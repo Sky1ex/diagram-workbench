@@ -6,7 +6,7 @@ const timelineFormatter = new Intl.DateTimeFormat('ru-RU', {
 	minute: '2-digit'
 });
 
-export function formatTimelineInstant(value) {
+function formatTimelineInstant(value) {
 	return timelineFormatter.format(new Date(value));
 }
 

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { LOD_ZOOM_THRESHOLD } from '@graphLayout';
 
@@ -48,10 +48,7 @@ export function useGraphLod(
 	edges,
 	enableLod) {
 	const [lodActive, setLodActive] = useState(false);
-
-	useEffect(() => {
-		if (!enableLod) setLodActive(false);
-	}, [enableLod]);
+	const effectiveLodActive = enableLod && lodActive;
 
 	const onViewportChange = useCallback(
 		(viewport) => {
@@ -63,14 +60,14 @@ export function useGraphLod(
 	);
 
 	const displayNodes = useMemo(
-		() => applyLodToNodes(nodes, lodActive),
-		[nodes, lodActive]
+		() => applyLodToNodes(nodes, effectiveLodActive),
+		[nodes, effectiveLodActive]
 	);
 
 	const displayEdges = useMemo(
-		() => applyLodToEdges(edges, lodActive),
-		[edges, lodActive]
+		() => applyLodToEdges(edges, effectiveLodActive),
+		[edges, effectiveLodActive]
 	);
 
-	return { displayNodes, displayEdges, lodActive, onViewportChange };
+	return { displayNodes, displayEdges, lodActive: effectiveLodActive, onViewportChange };
 }

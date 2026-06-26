@@ -1,2 +1,1 @@
-export { getGraphDefinition, loadGraphDocument, normalizeGraphDocument } from './loadGraphDocument';
-export { formatTimelineInstant, formatTimelineRange } from './formatTimeline';
+export { getGraphDefinition, loadGraphDocument } from './loadGraphDocument';

@@ -1,6 +1,6 @@
 import { toFlowNodeId } from '@graphLayout';
 
-import { collectFolderHostFlowIds } from '../graph-context/collectFolderHostFlowIds';
+import { collectFolderHostFlowIds } from '@graphContext';
 
 const MS_HOUR = 3_600_000;
 

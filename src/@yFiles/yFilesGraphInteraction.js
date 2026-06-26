@@ -1,5 +1,4 @@
 import {
-	GraphEditorInputMode,
 	GraphItemTypes,
 	IEdge,
 	INode,
@@ -239,17 +238,4 @@ export function installYFilesContextMenuHandler(options) {
 	const div = graphComponent.div;
 	div.addEventListener('contextmenu', handleContextMenu, true);
 	return () => div.removeEventListener('contextmenu', handleContextMenu, true);
-}
-
-export function buildYFilesContextMenuRequest(
-	graphComponent,
-	item,
-	queryLocation,
-	isExpanded = false
-) {
-	const viewPoint = graphComponent.toViewCoordinates(queryLocation);
-	const rect = graphComponent.div.getBoundingClientRect();
-	const clientX = rect.left + viewPoint.x;
-	const clientY = rect.top + viewPoint.y;
-	return buildContextMenuRequest(item, clientX, clientY, isExpanded);
 }

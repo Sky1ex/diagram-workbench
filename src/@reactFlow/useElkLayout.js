@@ -164,7 +164,6 @@ export function useElkLayout({
 		}
 	}, [
 		document,
-		datasetId,
 		expandedHostFlowIds,
 		largeGraphMode,
 		onLayoutApplied,

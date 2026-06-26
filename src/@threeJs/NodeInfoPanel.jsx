@@ -1,6 +1,7 @@
 import styled from 'styled-components';
 
 import { formatTimelineRange } from '@graphModel/formatTimeline';
+import { parseFlowNodeId } from '@graphContext';
 
 const Panel = styled.div`
 	position: absolute;
@@ -42,12 +43,6 @@ const RowValue = styled.span`
 	color: ${({ theme }) => theme.color['Neutral/Neutral 90']};
 	word-break: break-all;
 `;
-
-function parseFlowNodeId(flowId) {
-	const colon = flowId.indexOf(':');
-	if (colon === -1) return { graphId: '', localId: flowId };
-	return { graphId: flowId.slice(0, colon), localId: flowId.slice(colon + 1) };
-}
 
 export function NodeInfoPanel({
 	selectedNodeId,

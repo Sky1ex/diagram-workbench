@@ -1,6 +1,5 @@
 import {
 	EventRecognizers,
-	GraphEditorInputMode,
 	GraphViewerInputMode
 } from
 	'yfiles';

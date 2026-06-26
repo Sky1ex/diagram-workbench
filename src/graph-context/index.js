@@ -12,29 +12,17 @@ export {
 } from './GraphInteractionContext';
 
 export {
-	computeFilterVisibility,
 	collectDistinctDepthsInScope,
-	collectInlineSceneContext,
 	documentHasTimeline
 } from './filterGraphScene';
 
 export { filterFlowScene } from './filterFlowScene';
+export { filterGraph3DScene } from './filterGraph3DScene';
+export { collectFolderHostFlowIds } from './collectFolderHostFlowIds';
 
 export {
-	applyBranchHidingToVisibility,
-	collectNodesHiddenByBranchAnchor
-} from './branchVisibility';
-
-export {
-	formatFilterDateInput,
-	parseFilterDateInput,
-	startOfUtcDay,
-	endOfUtcDay
+	formatFilterDateNativeInput,
+	parseFilterDateNativeInput
 } from './filterDateUtils';
-
-export {
-	isFilterActive,
-	emptyFilterCriteria
-} from './graphFilterTypes';
 
 export { findGraphNode, nodeToHitAttributes, parseFlowNodeId } from './resolveGraphNode';

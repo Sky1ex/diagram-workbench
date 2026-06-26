@@ -31,16 +31,6 @@ export function fitRectInViewport(
 	return { left, top };
 }
 
-/** @deprecated Prefer useContextMenuPlacement with measured menu size. */
-export function computeContextMenuPlacement(
-	clientX,
-	clientY,
-	menuWidth = 180,
-	menuHeight = 120
-) {
-	return fitRectInViewport(clientX, clientY, menuWidth, menuHeight);
-}
-
 function placementEqual(a, b) {
 	return a.left === b.left && a.top === b.top;
 }

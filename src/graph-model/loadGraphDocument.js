@@ -39,7 +39,7 @@ function parseGraphDefinition(raw) {
 	return { id: raw.id, label: raw.label, nodes, edges };
 }
 
-export function normalizeGraphDocument(raw) {
+function normalizeGraphDocument(raw) {
 	if (!isRecord(raw) || typeof raw.rootGraphId !== 'string') {
 		throw new Error('Invalid graph document: missing rootGraphId');
 	}
@@ -68,11 +68,16 @@ const DATASETS = {
 };
 
 export function loadGraphDocument(datasetId) {
-	return DATASETS[datasetId];
+	const document = DATASETS[datasetId];
+	if (!document) {
+		throw new Error(`Unknown graph dataset: "${datasetId}"`);
+	}
+	return document;
 }
 
 export function getGraphDefinition(
 	document,
-	graphId) {
+	graphId
+) {
 	return document.graphs[graphId];
 }

@@ -4,13 +4,11 @@ import styled from 'styled-components';
 
 import {
 	buildInitialFilterDraft,
+	collectDistinctDepthsInScope,
+	documentHasTimeline,
 	useGraphInteraction,
 	useGraphView
 } from '@graphContext';
-import {
-	collectDistinctDepthsInScope,
-	documentHasTimeline
-} from '@graphContext/filterGraphScene';
 
 import { useContextMenuPlacement, VIEWPORT_PADDING } from './contextMenuPlacement';
 import {
