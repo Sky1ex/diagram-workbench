@@ -16,7 +16,6 @@ export {
 
 export { GRAPH_VISUAL_THEME } from './graphVisualTheme';
 export { ELK_LAYOUT_OPTIONS, getElkLayoutOptions } from './elkOptions';
-export { graphDefToFlowElements } from './graphDefToFlowElements';
 export { buildInlineFlowScene } from './buildInlineFlowScene';
 export { wrapExpandedGroups } from './wrapExpandedGroups';
 export { layoutExpandedInlineScene } from './adjustLayoutForExpandedHosts';
