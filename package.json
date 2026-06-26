@@ -1,0 +1,47 @@
+{
+  "name": "test-node-3",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "generate:graph-1k": "node scripts/generate-graph-document-1k.mjs",
+    "generate:graph-5k": "node scripts/generate-graph-document-5k.mjs",
+    "generate:graph-5k-timeline": "node scripts/generate-graph-document-5k-timeline.mjs",
+    "assign:demo-timeline": "node scripts/assign-demo-timeline.mjs"
+  },
+  "dependencies": {
+    "@admiral-ds/fonts": "^2.0.0",
+    "@admiral-ds/react-ui": "^8.62.0",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.6.1",
+    "@xyflow/react": "^12.10.2",
+    "anychart": "^8.14.1",
+    "dagre": "^0.8.5",
+    "elkjs": "^0.11.1",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "reactflow": "^11.11.4",
+    "styled-components": "^6.4.1",
+    "three": "^0.184.0",
+    "yfiles": "file:local-packages/yfiles-24.0.7-dev.tgz"
+  },
+  "devDependencies": {
+    "@babel/core": "^8.0.1",
+    "@babel/generator": "^8.0.0",
+    "@babel/parser": "^8.0.0",
+    "@babel/preset-typescript": "^8.0.1",
+    "@babel/traverse": "^8.0.0",
+    "@babel/types": "^8.0.0",
+    "@eslint/js": "^10.0.1",
+    "@vitejs/plugin-react": "^6.0.1",
+    "eslint": "^10.2.1",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.5.0",
+    "vite": "^8.0.10"
+  }
+}

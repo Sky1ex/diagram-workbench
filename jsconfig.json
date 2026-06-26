@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@yFiles": ["./src/@yFiles"],
+      "@yFiles/*": ["./src/@yFiles/*"],
+      "@anyChart": ["./src/@anyChart"],
+      "@anyChart/*": ["./src/@anyChart/*"],
+      "@threeJs": ["./src/@threeJs"],
+      "@threeJs/*": ["./src/@threeJs/*"],
+      "@reactFlow": ["./src/@reactFlow"],
+      "@reactFlow/*": ["./src/@reactFlow/*"],
+      "@graphModel": ["./src/graph-model"],
+      "@graphModel/*": ["./src/graph-model/*"],
+      "@graphLayout": ["./src/graph-layout"],
+      "@graphLayout/*": ["./src/graph-layout/*"],
+      "@graphContext": ["./src/graph-context"],
+      "@graphContext/*": ["./src/graph-context/*"],
+      "@graphData": ["./src/data"],
+      "@graphData/*": ["./src/data/*"]
+    }
+  },
+  "include": ["src"]
+}

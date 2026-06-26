@@ -1,0 +1,1 @@
+export { AnyChartGanttPanel } from './AnyChartGanttPanel';
