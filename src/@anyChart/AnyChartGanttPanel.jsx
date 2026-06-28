@@ -13,6 +13,8 @@ import {
 
 import 'anychart/dist/css/anychart-ui.min.css';
 import 'anychart/dist/fonts/css/anychart-font.min.css';
+import { toolbarMobile } from '../styles/mobileStyles';
+import { installLongPressMenu } from '../utils/installLongPressMenu';
 
 const Root = styled.div`
   box-sizing: border-box;
@@ -35,6 +37,8 @@ const Toolbar = styled.div`
   gap: 8px;
   padding: 8px 12px;
   border-bottom: 1px solid ${({ theme }) => theme.color['Neutral/Neutral 20']};
+
+  ${toolbarMobile}
 `;
 
 const ToolbarLabel = styled.span`
@@ -92,6 +96,7 @@ const ChartMount = styled.div`
   min-height: 0;
   width: 100%;
   height: 100%;
+  touch-action: pan-x pan-y;
 `;
 
 function resolveAnyChart(mod) {
@@ -113,16 +118,17 @@ function resolveAnyChart(mod) {
 function applyProjectGanttLayout(chart) {
 	const rowPx = 40;
 	const barPx = 16;
+	const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
 
 	chart.animation(false);
 	chart.defaultRowHeight(rowPx);
-	chart.headerHeight(52);
-	chart.splitterPosition(300);
+	chart.headerHeight(isMobile ? 44 : 52);
+	chart.splitterPosition(isMobile ? 110 : 300);
 
 	const dg = chart.dataGrid();
 	dg.fixedColumns(true);
-	dg.column(0).width(40);
-	dg.column(1).width(220);
+	dg.column(0).width(isMobile ? 32 : 40);
+	dg.column(1).width(isMobile ? 110 : 220);
 
 	const timeline = chart.getTimeline();
 	timeline.zoomOnMouseWheel(true);
@@ -333,13 +339,10 @@ export function AnyChartGanttPanel({ chrome = 'full' }) {
 		const mount = mountRef.current;
 		if (!mount || !chartReady) return;
 
-		const onContextMenu = (event) => {
-			event.preventDefault();
-			event.stopPropagation();
-
+		const openMenuAt = (clientX, clientY) => {
 			const row = resolveGanttRowAtEvent(
 				mount,
-				event,
+				{ clientX, clientY },
 				ganttDataRef.current,
 				expandedHostFlowIdsRef.current
 			);
@@ -353,8 +356,8 @@ export function AnyChartGanttPanel({ chrome = 'full' }) {
 
 			openContextMenuRef.current({
 				rendererId: 'anychart',
-				clientX: event.clientX,
-				clientY: event.clientY,
+				clientX,
+				clientY,
 				target: {
 					kind: 'node',
 					flowId: row.hostFlowId,
@@ -366,8 +369,20 @@ export function AnyChartGanttPanel({ chrome = 'full' }) {
 			});
 		};
 
+		const onContextMenu = (event) => {
+			event.preventDefault();
+			event.stopPropagation();
+			openMenuAt(event.clientX, event.clientY);
+		};
+
 		mount.addEventListener('contextmenu', onContextMenu);
-		return () => mount.removeEventListener('contextmenu', onContextMenu);
+		const removeLongPress = installLongPressMenu(mount, ({ clientX, clientY }) => {
+			openMenuAt(clientX, clientY);
+		});
+		return () => {
+			mount.removeEventListener('contextmenu', onContextMenu);
+			removeLongPress();
+		};
 	}, [chartReady, document]);
 
 	return (

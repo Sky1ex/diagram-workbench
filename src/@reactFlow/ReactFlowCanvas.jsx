@@ -20,6 +20,8 @@ import { ReactFlowInteractionProvider } from './reactFlowInteractionContext';
 import { useReactFlowContextMenu } from './reactFlowGraphInteraction';
 import { useElkLayout } from './useElkLayout';
 import { useGraphLod } from './useGraphLod';
+import { MOBILE } from '../styles/breakpoints';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 const EDGE_HIGHLIGHT_STROKE = '#2563eb';
 
@@ -29,6 +31,20 @@ const FlowHost = styled.div`
   width: 100%;
   height: 100%;
   position: relative;
+  touch-action: none;
+
+  .react-flow__minimap {
+    ${MOBILE} {
+      display: none;
+    }
+  }
+
+  .react-flow__controls {
+    ${MOBILE} {
+      bottom: 8px;
+      left: 8px;
+    }
+  }
 `;
 
 const LayoutError = styled.div`
@@ -84,6 +100,14 @@ const FilterBanner = styled.div`
   background: ${({ theme }) => theme.color['Neutral/Neutral 05']};
   border: 1px solid ${({ theme }) => theme.color['Neutral/Neutral 30']};
   pointer-events: none;
+
+  ${MOBILE} {
+    top: 8px;
+    right: 8px;
+    left: 8px;
+    max-width: none;
+    font-size: 11px;
+  }
 `;
 
 const LodBadge = styled.div`
@@ -133,6 +157,7 @@ export function ReactFlowCanvas({
 }) {
 	const rootGraph = document.graphs[document.rootGraphId];
 	const [selectedNodeId, setSelectedNodeId] = useState(null);
+	const isMobile = useIsMobile();
 	const { filterVisibility, sceneVisibilityActive, visibility } = useGraphInteraction();
 	const { onNodeContextMenu, onEdgeContextMenu } = useReactFlowContextMenu();
 
@@ -177,6 +202,10 @@ export function ReactFlowCanvas({
 	}, [datasetId, document.rootGraphId]);
 
 	useEffect(() => {
+		if (isMobile) setSelectedNodeId(null);
+	}, [isMobile]);
+
+	useEffect(() => {
 		if (!selectedNodeId) return;
 		if (filteredScene.nodes.some((node) => node.id === selectedNodeId)) return;
 		setSelectedNodeId(null);
@@ -215,8 +244,9 @@ export function ReactFlowCanvas({
 	);
 
 	const onNodeClick = useCallback((_, node) => {
+		if (isMobile) return;
 		setSelectedNodeId(node.id);
-	}, []);
+	}, [isMobile]);
 
 	const onPaneClick = useCallback(() => {
 		setSelectedNodeId(null);
@@ -263,11 +293,13 @@ export function ReactFlowCanvas({
 					<CanvasMessage>Граф «{rootGraph?.label ?? '—'}» не содержит узлов.</CanvasMessage>
 				}
 				{lodActive && <LodBadge>Компактный режим · приблизьте для подписей</LodBadge>}
-				<NodeInfoPanel
-					selectedNodeId={selectedNodeId}
-					nodes={filteredScene.nodes}
-					document={document}
-					expandedHostFlowIds={expandedHostFlowIds} />
+				{!isMobile &&
+					<NodeInfoPanel
+						selectedNodeId={selectedNodeId}
+						nodes={filteredScene.nodes}
+						document={document}
+						expandedHostFlowIds={expandedHostFlowIds} />
+				}
 
 				{showLoadingOverlay && <LoadingOverlay aria-hidden />}
 				<ReactFlow

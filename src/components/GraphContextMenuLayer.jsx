@@ -15,6 +15,7 @@ import {
 	GraphContextMenuFilter,
 	normalizeFilterCriteria
 } from './GraphContextMenuFilter';
+import { MOBILE } from '../styles/breakpoints';
 
 const MenuRoot = styled.div`
 	position: fixed;
@@ -30,6 +31,11 @@ const MenuRoot = styled.div`
 		$scrollable ? `calc(100dvh - ${VIEWPORT_PADDING * 2}px)` : 'none'};
 	overflow-y: ${({ $scrollable }) => $scrollable ? 'auto' : 'visible'};
 	overflow-x: ${({ $scrollable }) => $scrollable ? 'hidden' : 'visible'};
+
+	${MOBILE} {
+		min-width: 0;
+		max-width: calc(100vw - ${VIEWPORT_PADDING * 2}px);
+	}
 `;
 
 const MenuItemButton = styled.button`
@@ -68,6 +74,11 @@ const TargetHint = styled.div`
 	overflow: hidden;
 	text-overflow: ellipsis;
 	max-width: 280px;
+
+	${MOBILE} {
+		max-width: calc(100vw - 32px);
+		white-space: normal;
+	}
 `;
 
 function GraphContextMenu() {

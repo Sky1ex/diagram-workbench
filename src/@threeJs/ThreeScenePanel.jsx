@@ -7,6 +7,9 @@ import { buildGraph3DScene } from './buildGraph3DScene';
 import { GraphScene3D } from './GraphScene3D';
 import { NodeInfoPanel } from './NodeInfoPanel';
 import { useThreeGraphContextMenu } from './threeGraphInteraction';
+import { canvasHintMobile, toolbarMobile } from '../styles/mobileStyles';
+import { MOBILE } from '../styles/breakpoints';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 const Root = styled.div`
 	display: flex;
@@ -27,6 +30,8 @@ const Toolbar = styled.div`
 	gap: 8px;
 	padding: 8px 12px;
 	border-bottom: 1px solid ${({ theme }) => theme.color['Neutral/Neutral 20']};
+
+	${toolbarMobile}
 `;
 
 const ToolbarLabel = styled.span`
@@ -64,6 +69,12 @@ const InfoBanner = styled.div`
 	color: ${({ theme }) => theme.color['Neutral/Neutral 70']};
 	background: ${({ theme }) => theme.color['Neutral/Neutral 10']};
 	border-bottom: 1px solid ${({ theme }) => theme.color['Neutral/Neutral 30']};
+
+	${MOBILE} {
+		padding: 6px 8px;
+		font-size: 11px;
+		line-height: 1.4;
+	}
 `;
 
 const ToolButton = styled.button`
@@ -95,6 +106,7 @@ const CanvasArea = styled.div`
 	flex: 1;
 	min-height: 0;
 	position: relative;
+	touch-action: none;
 `;
 
 const Hint = styled.div`
@@ -109,6 +121,8 @@ const Hint = styled.div`
 	border: 1px solid ${({ theme }) => theme.color['Neutral/Neutral 20']};
 	z-index: 2;
 	pointer-events: none;
+
+	${canvasHintMobile}
 `;
 
 export default function ThreeScenePanel({ chrome = 'full' }) {
@@ -122,11 +136,14 @@ export default function ThreeScenePanel({ chrome = 'full' }) {
 
 	const { sceneVisibilityActive, visibility } = useGraphInteraction();
 	const openGraphContextMenu = useThreeGraphContextMenu();
+	const isMobile = useIsMobile();
 	const canvasAreaRef = useRef(null);
+	const cameraZoomApiRef = useRef(null);
 	const [nodeShape, setNodeShape] = useState('cube');
 	const [layoutMode, setLayoutMode] = useState('uniform');
 	const [selectedNodeId, setSelectedNodeId] = useState(null);
 	const [fitGeneration, setFitGeneration] = useState(0);
+	const [touchMode, setTouchMode] = useState('pan');
 
 	const rootGraph = document.graphs[document.rootGraphId];
 	const rootNodeCount = rootGraph?.nodes.length ?? 0;
@@ -149,25 +166,40 @@ export default function ThreeScenePanel({ chrome = 'full' }) {
 	);
 
 	const handleNodeSelect = useCallback((nodeId) => {
+		if (isMobile) return;
 		setSelectedNodeId(nodeId || null);
-	}, []);
+	}, [isMobile]);
 
 	const handleNodeContextMenu = useCallback(
 		(hit) => {
-			setSelectedNodeId(hit.nodeId);
+			if (!isMobile) {
+				setSelectedNodeId(hit.nodeId);
+			}
 			openGraphContextMenu(hit);
 		},
-		[openGraphContextMenu]
+		[isMobile, openGraphContextMenu]
 	);
 
 	const handleRefit = useCallback(() => {
 		setFitGeneration((g) => g + 1);
 	}, []);
 
+	const handleZoomIn = useCallback(() => {
+		cameraZoomApiRef.current?.zoomIn();
+	}, []);
+
+	const handleZoomOut = useCallback(() => {
+		cameraZoomApiRef.current?.zoomOut();
+	}, []);
+
 	useEffect(() => {
 		setSelectedNodeId(null);
 		setFitGeneration((g) => g + 1);
 	}, [datasetId]);
+
+	useEffect(() => {
+		if (isMobile) setSelectedNodeId(null);
+	}, [isMobile]);
 
 	const graphTitle = rootGraph?.label ?? 'Граф';
 
@@ -242,6 +274,32 @@ export default function ThreeScenePanel({ chrome = 'full' }) {
 				}
 
 				<ToolbarLabel>Камера</ToolbarLabel>
+				{isMobile &&
+					<>
+						<ToolButton
+							type="button"
+							$active={touchMode === 'pan'}
+							title="Один палец — перемещение по графу"
+							onClick={() => setTouchMode('pan')}>
+
+							Панорама
+						</ToolButton>
+						<ToolButton
+							type="button"
+							$active={touchMode === 'orbit'}
+							title="Один палец — поворот камеры"
+							onClick={() => setTouchMode('orbit')}>
+
+							Орбита
+						</ToolButton>
+						<ToolButton type="button" title="Приблизить" onClick={handleZoomIn}>
+							+
+						</ToolButton>
+						<ToolButton type="button" title="Отдалить" onClick={handleZoomOut}>
+							−
+						</ToolButton>
+					</>
+				}
 				<ToolButton type="button" title="Подогнать камеру под сцену" onClick={handleRefit}>
 					Вписать
 				</ToolButton>
@@ -251,20 +309,29 @@ export default function ThreeScenePanel({ chrome = 'full' }) {
 					scene={scene}
 					shape={nodeShape}
 					expandedHostFlowIds={expandedHostFlowIds}
-					selectedNodeId={selectedNodeId}
+					selectedNodeId={isMobile ? null : selectedNodeId}
 					fitKey={fitKey}
+					mobile={isMobile}
+					touchMode={touchMode}
+					cameraZoomApiRef={cameraZoomApiRef}
 					onNodeSelect={handleNodeSelect}
 					onNodeContextMenu={handleNodeContextMenu} />
 
-				<NodeInfoPanel
-					selectedNodeId={selectedNodeId}
-					nodes={scene.nodes}
-					document={document}
-					expandedHostFlowIds={expandedHostFlowIds} />
+				{!isMobile &&
+					<NodeInfoPanel
+						selectedNodeId={selectedNodeId}
+						nodes={scene.nodes}
+						document={document}
+						expandedHostFlowIds={expandedHostFlowIds} />
+				}
 
 				{chrome === 'full' &&
 					<Hint>
-						ЛКМ — выделить · ПКМ — контекстное меню · орбита: ЛКМ+drag на фоне · zoom: колесо · пан: ПКМ на фоне
+						{isMobile ?
+							(touchMode === 'pan' ?
+								'1 палец — панорама · 2 пальца — масштаб · +/− в панели · долгое нажатие — меню' :
+								'1 палец — орбита · 2 пальца — масштаб · +/− в панели · долгое нажатие — меню') :
+							'ЛКМ — выделить · ПКМ — контекстное меню · орбита: ЛКМ+drag на фоне · zoom: колесо · пан: ПКМ на фоне'}
 					</Hint>
 				}
 			</CanvasArea>

@@ -8,6 +8,7 @@ import {
 import { findGraphNode, nodeToHitAttributes } from '@graphContext';
 
 import { toFlowEdgeId, toFlowNodeId } from '@graphLayout';
+import { installLongPressMenu } from '../utils/installLongPressMenu';
 
 import {
 	applyDefaultGraphStyles,
@@ -208,8 +209,11 @@ export function installYFilesContextMenuHandler(options) {
 	const handleContextMenu = (event) => {
 		event.preventDefault();
 		event.stopPropagation();
+		openMenuAt(event.clientX, event.clientY);
+	};
 
-		const item = resolveHitItem(inputMode, graphComponent, event.clientX, event.clientY);
+	const openMenuAt = (clientX, clientY) => {
+		const item = resolveHitItem(inputMode, graphComponent, clientX, clientY);
 		if (!item) return;
 
 		let isExpanded = false;
@@ -221,7 +225,7 @@ export function installYFilesContextMenuHandler(options) {
 			}
 		}
 
-		const built = buildContextMenuRequest(item, event.clientX, event.clientY, isExpanded);
+		const built = buildContextMenuRequest(item, clientX, clientY, isExpanded);
 		const graphNode = findGraphNode(document, built.target.flowId);
 		const attributes =
 			graphNode && INode.isInstance(item) ?
@@ -237,5 +241,11 @@ export function installYFilesContextMenuHandler(options) {
 
 	const div = graphComponent.div;
 	div.addEventListener('contextmenu', handleContextMenu, true);
-	return () => div.removeEventListener('contextmenu', handleContextMenu, true);
+	const removeLongPress = installLongPressMenu(div, ({ clientX, clientY }) => {
+		openMenuAt(clientX, clientY);
+	});
+	return () => {
+		div.removeEventListener('contextmenu', handleContextMenu, true);
+		removeLongPress();
+	};
 }

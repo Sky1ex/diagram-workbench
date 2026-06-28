@@ -4,22 +4,48 @@ import { OrbitControls } from '@react-three/drei';
 
 import * as THREE from 'three';
 
-/** Фиксированный шаг зума за «щелчок» колеса (~10% масштаба). */
-const ZOOM_STEP = 1.1;
+import { dollyOrbitCamera, normalizeWheelDelta, wheelDeltaToZoomScale } from './cameraZoom';
 
-/** Нормализация deltaY (line/pixel modes). */
-function normalizeWheelDelta(event) {
-	let delta = event.deltaY;
-	if (event.deltaMode === WheelEvent.DOM_DELTA_LINE) delta *= 16;
-	if (event.deltaMode === WheelEvent.DOM_DELTA_PAGE) delta *= 100;
-	return delta;
+const DESKTOP_TOUCHES = {
+	ONE: THREE.TOUCH.ROTATE,
+	TWO: THREE.TOUCH.DOLLY_PAN
+};
+
+/** Мобильный режим «Панорама»: один палец — сдвиг, два — масштаб. */
+const MOBILE_PAN_TOUCHES = {
+	ONE: THREE.TOUCH.PAN,
+	TWO: THREE.TOUCH.DOLLY_PAN
+};
+
+/** Мобильный режим «Орбита»: один палец — поворот, два — масштаб. */
+const MOBILE_ORBIT_TOUCHES = {
+	ONE: THREE.TOUCH.ROTATE,
+	TWO: THREE.TOUCH.DOLLY_PAN
+};
+
+function resolveTouches(mobile, touchMode) {
+	if (!mobile) return DESKTOP_TOUCHES;
+	return touchMode === 'orbit' ? MOBILE_ORBIT_TOUCHES : MOBILE_PAN_TOUCHES;
 }
 
-export function DagOrbitControls({ enabled = true }) {
+export function DagOrbitControls({
+	enabled = true,
+	mobile = false,
+	touchMode = 'pan'
+}) {
 	const controlsRef = useRef(null);
 	const { gl } = useThree();
 
 	useEffect(() => {
+		const controls = controlsRef.current;
+		if (!controls) return;
+		controls.touches = { ...resolveTouches(mobile, touchMode) };
+		controls.enableZoom = mobile;
+	}, [mobile, touchMode]);
+
+	useEffect(() => {
+		if (mobile) return;
+
 		const controls = controlsRef.current;
 		if (!controls) return;
 
@@ -27,33 +53,17 @@ export function DagOrbitControls({ enabled = true }) {
 			if (!enabled) return;
 			event.preventDefault();
 
-			const camera = controls.object;
-			if (!(camera instanceof THREE.PerspectiveCamera)) return;
-
 			const delta = normalizeWheelDelta(event);
-			if (delta === 0) return;
+			const scale = wheelDeltaToZoomScale(delta);
+			if (scale === 1) return;
 
-			const distance = camera.position.distanceTo(controls.target);
-			if (distance <= 0) return;
-
-			const steps = Math.min(3, Math.max(1, Math.round(Math.abs(delta) / 100)));
-			const scale = delta > 0 ? Math.pow(ZOOM_STEP, steps) : Math.pow(1 / ZOOM_STEP, steps);
-			const newDistance = THREE.MathUtils.clamp(
-				distance * scale,
-				controls.minDistance,
-				controls.maxDistance
-			);
-
-			const offset = camera.position.clone().sub(controls.target);
-			offset.setLength(newDistance);
-			camera.position.copy(controls.target).add(offset);
-			controls.update();
+			dollyOrbitCamera(controls, scale);
 		};
 
 		const element = gl.domElement;
 		element.addEventListener('wheel', onWheel, { passive: false });
 		return () => element.removeEventListener('wheel', onWheel);
-	}, [gl, enabled]);
+	}, [gl, enabled, mobile]);
 
 	return (
 		<OrbitControls
@@ -62,9 +72,10 @@ export function DagOrbitControls({ enabled = true }) {
 			enabled={enabled}
 			enableDamping
 			dampingFactor={0.06}
-			enableZoom={false}
+			enableZoom={mobile}
+			zoomSpeed={mobile ? 1.15 : 1}
 			rotateSpeed={0.85}
-			panSpeed={1}
+			panSpeed={mobile && touchMode === 'pan' ? 1.25 : 1}
 			screenSpacePanning
 			minDistance={0.5}
 			maxDistance={800}

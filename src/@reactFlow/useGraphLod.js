@@ -2,20 +2,32 @@ import { useCallback, useMemo, useState } from 'react';
 
 import { LOD_ZOOM_THRESHOLD } from '@graphLayout';
 
-function applyLodToNodes(
-	nodes,
-	lodActive) {
-	if (!lodActive) return nodes;
+function toLabeledNodeTypes(nodes) {
 	return nodes.map((node) => {
-		if (node.type === 'folderNode') return { ...node, type: 'compactFolderNode' };
-		if (node.type === 'groupNode') return { ...node, type: 'compactGroupNode' };
-		return { ...node, type: 'compactDagNode' };
+		if (node.type === 'layoutAnchor') return node;
+		if (node.type === 'compactGroupNode') return { ...node, type: 'groupNode' };
+		if (node.type === 'compactFolderNode') return { ...node, type: 'folderNode' };
+		if (node.type === 'compactDagNode') return { ...node, type: 'dagNode' };
+		return node;
 	});
 }
 
-function applyLodToEdges(
-	edges,
-	lodActive) {
+function toCompactNodeTypes(nodes) {
+	return nodes.map((node) => {
+		if (node.type === 'layoutAnchor') return node;
+		if (node.type === 'groupNode') return { ...node, type: 'compactGroupNode' };
+		if (node.type === 'folderNode') return { ...node, type: 'compactFolderNode' };
+		if (node.type === 'dagNode') return { ...node, type: 'compactDagNode' };
+		return node;
+	});
+}
+
+function applyLodToNodes(nodes, lodActive) {
+	if (!lodActive) return toLabeledNodeTypes(nodes);
+	return toCompactNodeTypes(nodes);
+}
+
+function applyLodToEdges(edges, lodActive) {
 	if (!lodActive) return edges;
 	return edges.map((edge) => {
 		if (edge.type === 'elkEdge') {
@@ -42,12 +54,12 @@ function applyLodToEdges(
 /**
  * LOD переключается только при пересечении порога zoom (onViewportChange),
  * без подписки useViewport — pan/zoom не ре-рендерит всю сцену каждый кадр.
+ *
+ * Меняет только тип узла (подписи вкл/выкл) и упрощает рёбра. Размеры и позиции
+ * layout не трогает — иначе узлы наезжают друг на друга (dagre считает compact).
  */
-export function useGraphLod(
-	nodes,
-	edges,
-	enableLod) {
-	const [lodActive, setLodActive] = useState(false);
+export function useGraphLod(nodes, edges, enableLod) {
+	const [lodActive, setLodActive] = useState(() => enableLod);
 	const effectiveLodActive = enableLod && lodActive;
 
 	const onViewportChange = useCallback(

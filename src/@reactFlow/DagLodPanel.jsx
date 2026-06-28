@@ -7,6 +7,8 @@ import { MAX_INLINE_EXPAND_LARGE } from '@graphLayout';
 
 import { ReactFlowCanvas } from './ReactFlowCanvas';
 import { ReactFlowChromeStyles } from './reactFlowChromeStyles';
+import { canvasHintMobile, toolbarMobile } from '../styles/mobileStyles';
+import { MOBILE } from '../styles/breakpoints';
 
 const Root = styled.div`
   display: flex;
@@ -27,6 +29,8 @@ const Toolbar = styled.div`
   gap: 8px;
   padding: 8px 12px;
   border-bottom: 1px solid ${({ theme }) => theme.color['Neutral/Neutral 20']};
+
+  ${toolbarMobile}
 `;
 
 const ToolbarLabel = styled.span`
@@ -64,6 +68,12 @@ const InfoBanner = styled.div`
   color: ${({ theme }) => theme.color['Neutral/Neutral 70']};
   background: ${({ theme }) => theme.color['Neutral/Neutral 10']};
   border-bottom: 1px solid ${({ theme }) => theme.color['Neutral/Neutral 30']};
+
+  ${MOBILE} {
+    padding: 6px 8px;
+    font-size: 11px;
+    line-height: 1.4;
+  }
 `;
 
 const ToolButton = styled.button`
@@ -116,6 +126,8 @@ const Hint = styled.div`
   border: 1px solid ${({ theme }) => theme.color['Neutral/Neutral 20']};
   z-index: 2;
   pointer-events: none;
+
+  ${canvasHintMobile}
 `;
 
 export default function DagLodPanel({ chrome = 'full' }) {
@@ -142,8 +154,10 @@ export default function DagLodPanel({ chrome = 'full' }) {
 		setLayoutGeneration((g) => g + 1);
 	}, []);
 
-	const handleLayoutApplied = useCallback(() => {
-		setFitViewGeneration((g) => g + 1);
+	const handleLayoutApplied = useCallback(({ fitView }) => {
+		if (fitView) {
+			setFitViewGeneration((g) => g + 1);
+		}
 	}, []);
 
 	const handleSceneStatsChange = useCallback(

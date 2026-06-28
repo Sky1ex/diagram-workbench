@@ -43,6 +43,8 @@ import {
 	installYFilesContextMenuHandler,
 	installYFilesFilterInputGuards
 } from './yFilesGraphInteraction';
+import { canvasHintMobile, hideOnMobile, toolbarMobile } from '../styles/mobileStyles';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 registerYFilesLicense();
 
@@ -65,6 +67,8 @@ const Toolbar = styled.div`
 	gap: 8px;
 	padding: 8px 12px;
 	border-bottom: 1px solid ${({ theme }) => theme.color['Neutral/Neutral 20']};
+
+	${toolbarMobile}
 `;
 
 const ToolbarLabel = styled.span`
@@ -113,6 +117,7 @@ const GraphHost = styled.div`
 	min-height: 0;
 	width: 100%;
 	height: 100%;
+	touch-action: none;
 `;
 
 const OverviewHost = styled.div`
@@ -127,6 +132,8 @@ const OverviewHost = styled.div`
 	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 	overflow: hidden;
 	z-index: 2;
+
+	${hideOnMobile}
 `;
 
 const Hint = styled.div`
@@ -141,6 +148,9 @@ const Hint = styled.div`
 	border: 1px solid ${({ theme }) => theme.color['Neutral/Neutral 20']};
 	z-index: 2;
 	pointer-events: none;
+	max-width: min(480px, calc(100% - 24px));
+
+	${canvasHintMobile}
 `;
 
 export default function YFilesGraphPanel({
@@ -160,6 +170,9 @@ export default function YFilesGraphPanel({
 	} = useGraphView();
 
 	const { openContextMenu, sceneVisibilityActive, visibility } = useGraphInteraction();
+	const isMobile = useIsMobile();
+	const isMobileRef = useRef(isMobile);
+	isMobileRef.current = isMobile;
 	const graphHostRef = useRef(null);
 	const overviewHostRef = useRef(null);
 	const runtimeRef = useRef(null);
@@ -228,8 +241,12 @@ export default function YFilesGraphPanel({
 			allowEditLabel: false,
 			deletableItems: GraphItemTypes.NONE,
 			showHandleItems: GraphItemTypes.NONE,
-			selectableItems: GraphItemTypes.NODE | GraphItemTypes.EDGE,
-			focusableItems: GraphItemTypes.NODE | GraphItemTypes.EDGE
+			selectableItems: isMobileRef.current ?
+				GraphItemTypes.NONE :
+				GraphItemTypes.NODE | GraphItemTypes.EDGE,
+			focusableItems: isMobileRef.current ?
+				GraphItemTypes.NONE :
+				GraphItemTypes.NODE | GraphItemTypes.EDGE
 		});
 
 		inputMode.moveInputMode.enabled = false;
@@ -237,12 +254,12 @@ export default function YFilesGraphPanel({
 		inputMode.multiSelectionRecognizer = EventRecognizers.NEVER;
 		inputMode.ignoreVoidStyles = true;
 		installYFilesFilterInputGuards(inputMode);
-		configureCanvasPanning(inputMode);
+		configureCanvasPanning(inputMode, { mobile: isMobileRef.current });
 		const nav = inputMode.navigationInputMode;
 		nav.enabled = true;
 		nav.allowCollapseGroup = true;
 		nav.allowExpandGroup = true;
-		nav.fitContentAfterGroupActions = true;
+		nav.fitContentAfterGroupActions = false;
 		graphComponent.inputMode = inputMode;
 		installEdgeBridges(graphComponent);
 
@@ -257,6 +274,11 @@ export default function YFilesGraphPanel({
 		});
 
 		const syncSelection = () => {
+			if (isMobileRef.current) {
+				setNodeSelection(null);
+				return;
+			}
+
 			const selected = graphComponent.selection.selectedNodes.toArray();
 			const filter = filterContextRef.current;
 			if (selected.length !== 1) {
@@ -284,7 +306,7 @@ export default function YFilesGraphPanel({
 		graphComponent.selection.addItemSelectionChangedListener(syncSelection);
 
 		let layoutGeneration = 0;
-		const scheduleLayout = (fromSketch) => {
+		const scheduleLayout = (fromSketch, { fitViewport = false } = {}) => {
 			const gen = ++layoutGeneration;
 			void runHierarchicLayout(graphComponent, {
 				fromSketch,
@@ -293,14 +315,16 @@ export default function YFilesGraphPanel({
 				if (gen !== layoutGeneration) return;
 				reapplyEdgeSelectionHighlight(graphComponent, filterContextRef.current);
 				graphComponent.invalidate();
-				graphComponent.fitGraphBounds(new Insets(40));
+				if (fitViewport) {
+					graphComponent.fitGraphBounds(new Insets(40));
+				}
 			});
 		};
 
 		runtimeRef.current = { graphComponent, foldingView, scheduleLayout };
 		setCanvasReady(true);
 
-		scheduleLayout(false);
+		scheduleLayout(false, { fitViewport: true });
 
 		const syncExpandedHostFromFold = (item, expanded) => {
 			if (suppressFoldSyncRef.current || !item) return;
@@ -351,7 +375,7 @@ export default function YFilesGraphPanel({
 			overviewComponent.cleanUp();
 			graphComponent.cleanUp();
 		};
-	}, [document]);
+	}, [document, isMobile]);
 
 	useEffect(() => {
 		if (!canvasReady) return;
@@ -466,7 +490,9 @@ export default function YFilesGraphPanel({
 			}
 			<CanvasArea>
 				<GraphHost ref={graphHostRef} />
-				<NodeInfoPanel selection={nodeSelection} document={document} />
+				{!isMobile &&
+					<NodeInfoPanel selection={nodeSelection} document={document} />
+				}
 				<OverviewHost ref={overviewHostRef} title="Панорама графа" />
 				<Hint>ЛКМ по узлу — информация · ПКМ — контекстное меню · ЛКМ+drag — пан · «+» на папке — подграф</Hint>
 			</CanvasArea>

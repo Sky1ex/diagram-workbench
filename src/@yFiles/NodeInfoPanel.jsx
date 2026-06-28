@@ -1,6 +1,7 @@
 import styled from 'styled-components';
 
 import { formatTimelineRange } from '@graphModel/formatTimeline';
+import { nodeInfoPanelMobile } from '../styles/mobileStyles';
 
 const Panel = styled.div`
     position: absolute;
@@ -16,6 +17,8 @@ const Panel = styled.div`
     border: 1px solid ${({ theme }) => theme.color['Neutral/Neutral 30']};
     box-shadow: 0 4px 16px rgba(15, 23, 42, 0.12);
     pointer-events: none;
+
+    ${nodeInfoPanelMobile}
 `;
 
 const Title = styled.div`

@@ -7,6 +7,8 @@ import { useGraphInteraction, useGraphView } from '@graphContext';
 import YFilesGraphPanel from '@yFiles/YFilesGraphPanel';
 
 import { TabLoadingState } from './TabLoadingState';
+import { MOBILE } from '../styles/breakpoints';
+import { toolbarMobile } from '../styles/mobileStyles';
 
 const DagLodPanel = lazy(() => import('@reactFlow/DagLodPanel'));
 const ThreeScenePanel = lazy(() => import('@threeJs/ThreeScenePanel'));
@@ -22,6 +24,10 @@ function gridColumns(panelCount) {
 
 function gridRows(panelCount) {
 	return panelCount === 4 ? '1fr 1fr' : '1fr';
+}
+
+function mobileGridRows(panelCount) {
+	return `repeat(${panelCount}, minmax(min(42vh, 320px), 1fr))`;
 }
 
 function paneBorderFlags(index, panelCount) {
@@ -53,6 +59,8 @@ const SharedToolbar = styled.div`
 	padding: 8px 12px;
 	border-bottom: 1px solid ${({ theme }) => theme.color['Neutral/Neutral 20']};
 	background: ${({ theme }) => theme.color['Neutral/Neutral 05']};
+
+	${toolbarMobile}
 `;
 
 const ToolbarLabel = styled.span`
@@ -94,6 +102,13 @@ const SplitGrid = styled.div`
 	grid-template-columns: ${({ $panelCount }) => gridColumns($panelCount)};
 	grid-template-rows: ${({ $panelCount }) => gridRows($panelCount)};
 	gap: 0;
+
+	${MOBILE} {
+		grid-template-columns: 1fr;
+		grid-template-rows: ${({ $panelCount }) => mobileGridRows($panelCount)};
+		overflow-y: auto;
+		-webkit-overflow-scrolling: touch;
+	}
 `;
 
 const Pane = styled.div`
@@ -106,6 +121,11 @@ const Pane = styled.div`
 
 	${({ $noRight }) => $noRight && 'border-right: none;'}
 	${({ $noBottom }) => $noBottom && 'border-bottom: none;'}
+
+	${MOBILE} {
+		border-right: none;
+		${({ $isLastPane }) => $isLastPane && 'border-bottom: none;'}
+	}
 `;
 
 const PaneHeader = styled.div`
@@ -116,6 +136,11 @@ const PaneHeader = styled.div`
 	padding: 8px 12px;
 	border-bottom: 1px solid ${({ theme }) => theme.color['Neutral/Neutral 20']};
 	background: ${({ theme }) => theme.color['Neutral/Neutral 10']};
+
+	${MOBILE} {
+		padding: 6px 8px;
+		flex-wrap: wrap;
+	}
 `;
 
 const PaneTitle = styled.span`
@@ -128,6 +153,11 @@ const PaneSelectWrap = styled.div`
 	flex: 1;
 	min-width: 0;
 	max-width: 200px;
+
+	${MOBILE} {
+		max-width: none;
+		width: 100%;
+	}
 `;
 
 const PaneBody = styled.div`
@@ -155,7 +185,7 @@ function ComparePane({
 	const borders = paneBorderFlags(paneIndex, panelCount);
 
 	return (
-		<Pane {...borders}>
+		<Pane {...borders} $isLastPane={paneIndex === panelCount - 1}>
 			<PaneHeader>
 				<PaneTitle>{title}</PaneTitle>
 				<PaneSelectWrap>

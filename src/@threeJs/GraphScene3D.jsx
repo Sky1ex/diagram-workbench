@@ -1,6 +1,7 @@
 import { Canvas } from '@react-three/fiber';
 
 import { DagOrbitControls } from './DagOrbitControls';
+import { CameraZoomBridge } from './CameraZoomBridge';
 import { GraphEdges3D } from './GraphEdges3D';
 import { GraphNodes3D } from './GraphNodes3D';
 import { InitialCameraFit } from './InitialCameraFit';
@@ -12,7 +13,10 @@ export function GraphScene3D({
 	selectedNodeId,
 	fitKey,
 	onNodeSelect,
-	onNodeContextMenu
+	onNodeContextMenu,
+	mobile = false,
+	touchMode = 'pan',
+	cameraZoomApiRef
 }) {
 	return (
 		<Canvas
@@ -42,7 +46,8 @@ export function GraphScene3D({
 				onNodeContextMenu={onNodeContextMenu}
 			/>
 
-			<DagOrbitControls enabled />
+			<DagOrbitControls enabled mobile={mobile} touchMode={touchMode} />
+			<CameraZoomBridge apiRef={cameraZoomApiRef} />
 			<InitialCameraFit nodes={scene.nodes} fitKey={fitKey} />
 		</Canvas>
 	);

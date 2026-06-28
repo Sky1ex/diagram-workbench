@@ -1,6 +1,7 @@
 import styled from 'styled-components';
 
 import { useGraphView } from './GraphDocumentContext';
+import { MOBILE } from '../styles/breakpoints';
 
 const Bar = styled.nav`
 	flex-shrink: 0;
@@ -11,6 +12,11 @@ const Bar = styled.nav`
 	padding: 8px 12px;
 	font-size: 13px;
 	color: ${({ theme }) => theme.color['Neutral/Neutral 70']};
+
+	${MOBILE} {
+		padding: 6px 8px;
+		font-size: 12px;
+	}
 `;
 
 const CrumbButton = styled.button`

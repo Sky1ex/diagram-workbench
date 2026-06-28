@@ -25,6 +25,7 @@ import YFilesGraphPanel from '@yFiles/YFilesGraphPanel';
 import { CompareSplitPanel, COMPARE_DEFAULT_LIBRARIES } from './components/CompareSplitPanel';
 import { GraphContextMenuLayer } from './components/GraphContextMenuLayer';
 import { LIBRARY_TAB_IDS, libraryTabLabels } from './libraryTabs';
+import { MOBILE } from './styles/breakpoints';
 
 const DagLodPanel = lazy(() => import('@reactFlow/DagLodPanel'));
 const ThreeScenePanel = lazy(() => import('@threeJs/ThreeScenePanel'));
@@ -48,12 +49,36 @@ const TabBarChrome = styled.div`
 	display: flex;
 	align-items: flex-end;
 	gap: 16px;
+
+	${MOBILE} {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 8px;
+		padding: 8px 8px 0;
+	}
 `;
 
 const DatasetSelectWrap = styled.div`
 	flex-shrink: 0;
 	width: 220px;
 	padding-bottom: 6px;
+
+	${MOBILE} {
+		width: 100%;
+		padding-bottom: 0;
+	}
+`;
+
+const TabMenuWrap = styled.div`
+	flex: 1;
+	min-width: 0;
+	padding-bottom: 6px;
+
+	${MOBILE} {
+		width: 100%;
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+	}
 `;
 
 const datasetOptions = [
@@ -68,6 +93,10 @@ const CanvasFrame = styled.div`
 	display: flex;
 	flex-direction: column;
 	padding: 0 12px 12px;
+
+	${MOBILE} {
+		padding: 0 4px 4px;
+	}
 `;
 
 const Viewport = styled.div`
@@ -163,18 +192,20 @@ export function DiagramWorkbench() {
 									)}
 								</Select>
 							</DatasetSelectWrap>
-							<TabMenuHorizontal
-								dimension="l"
-								appearance="primary"
-								showUnderline
-								tabsId={tabsId}
-								selectedTabId={selectedTabId}
-								defaultSelectedTabId="yfiles"
-								onSelectTab={setSelectedTabId}
-								renderTab={renderTab}
-								renderDropMenuItem={renderDropMenuItem}
-								tabIsDisabled={tabIsDisabled}
-							/>
+							<TabMenuWrap>
+								<TabMenuHorizontal
+									dimension="l"
+									appearance="primary"
+									showUnderline
+									tabsId={tabsId}
+									selectedTabId={selectedTabId}
+									defaultSelectedTabId="yfiles"
+									onSelectTab={setSelectedTabId}
+									renderTab={renderTab}
+									renderDropMenuItem={renderDropMenuItem}
+									tabIsDisabled={tabIsDisabled}
+								/>
+							</TabMenuWrap>
 						</TabBarChrome>
 						<CanvasFrame>
 							{selectedTabId !== 'compare' && <GraphBreadcrumbBar />}

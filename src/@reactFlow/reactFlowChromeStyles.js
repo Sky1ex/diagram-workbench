@@ -2,6 +2,15 @@ import { createGlobalStyle } from 'styled-components';
 
 /** Стили Controls / MiniMap React Flow под Admiral theme. */
 export const ReactFlowChromeStyles = createGlobalStyle`
+  .react-flow__node {
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    overflow: hidden !important;
+  }
+
   .react-flow__minimap {
     border-radius: 8px;
     border: 1px solid ${({ theme }) => theme.color['Neutral/Neutral 30']};

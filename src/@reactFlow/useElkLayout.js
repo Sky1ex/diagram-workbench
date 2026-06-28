@@ -51,6 +51,7 @@ export function useElkLayout({
 	const [visibleNodeCount, setVisibleNodeCount] = useState(0);
 	const [visibleEdgeCount, setVisibleEdgeCount] = useState(0);
 	const layoutEpochRef = useRef(0);
+	const layoutFitViewRef = useRef(true);
 
 	const rootGraph = document.graphs[document.rootGraphId];
 	const rootNodeCount = rootGraph?.nodes.length ?? 0;
@@ -75,6 +76,8 @@ export function useElkLayout({
 
 	const runLayout = useCallback(async () => {
 		const epoch = ++layoutEpochRef.current;
+		const fitView = layoutFitViewRef.current;
+		layoutFitViewRef.current = false;
 		setLayouting(true);
 		setLayoutError(null);
 
@@ -129,7 +132,7 @@ export function useElkLayout({
 				const wrappedNodes = wrapExpandedGroups(layoutedNodes, expandedHostFlowIds);
 				setNodes(wrappedNodes);
 				setEdges(displayEdges);
-				onLayoutApplied?.();
+				onLayoutApplied?.({ fitView });
 				return;
 			}
 
@@ -151,7 +154,7 @@ export function useElkLayout({
 			const wrappedNodes = wrapExpandedGroups(layoutedNodes, expandedHostFlowIds);
 			setNodes(wrappedNodes);
 			setEdges(layoutedEdges);
-			onLayoutApplied?.();
+			onLayoutApplied?.({ fitView });
 		} catch (error) {
 			if (epoch !== layoutEpochRef.current) return;
 			const message = error instanceof Error ? error.message : String(error);
@@ -176,8 +179,18 @@ export function useElkLayout({
 	]);
 
 	const debounceMs = largeGraphMode ? LARGE_GRAPH_LAYOUT_DEBOUNCE_MS : LAYOUT_DEBOUNCE_MS;
+	const prevRootGraphIdRef = useRef(null);
+	const prevLayoutGenerationRef = useRef(null);
 
 	useEffect(() => {
+		const isInitialLayout = prevRootGraphIdRef.current === null;
+		const rootGraphChanged = prevRootGraphIdRef.current !== document.rootGraphId;
+		const layoutGenerationChanged = prevLayoutGenerationRef.current !== layoutGeneration;
+		layoutFitViewRef.current =
+			isInitialLayout || rootGraphChanged || layoutGenerationChanged;
+		prevRootGraphIdRef.current = document.rootGraphId;
+		prevLayoutGenerationRef.current = layoutGeneration;
+
 		const timer = window.setTimeout(() => {
 			void runLayout();
 		}, debounceMs);

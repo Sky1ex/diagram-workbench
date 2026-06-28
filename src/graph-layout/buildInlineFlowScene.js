@@ -9,11 +9,6 @@ import {
 
 import { toFlowEdgeId, toFlowNodeId } from './flowNodeId';
 
-function truncateLabel(label, maxLen) {
-	if (label.length <= maxLen) return label;
-	return `${label.slice(0, maxLen - 1)}…`;
-}
-
 function nodeSizes(isFolder, profile) {
 	if (profile === 'compact') {
 		return isFolder ? COMPACT_FOLDER_NODE_SIZE : COMPACT_DAG_NODE_SIZE;
@@ -31,7 +26,6 @@ function createFlowNode(
 	const isFolder = kind === 'folder' || kind === 'layoutAnchor';
 	const size = nodeSizes(isFolder, profile);
 	const compact = profile === 'compact';
-	const labelMaxLen = compact ? 14 : 48;
 
 	const type =
 		kind === 'layoutAnchor' ? 'layoutAnchor' : kind === 'folder' ? 'folderNode' : 'dagNode';
@@ -40,10 +34,12 @@ function createFlowNode(
 		id: toFlowNodeId(graphId, nodeDef.id),
 		type,
 		position: { x: 0, y: 0 },
+		width: size.width,
+		height: size.height,
 		sourcePosition: Position.Bottom,
 		targetPosition: Position.Top,
 		data: {
-			label: truncateLabel(nodeDef.label, labelMaxLen),
+			label: nodeDef.label,
 			fullLabel: nodeDef.label,
 			localId: nodeDef.id,
 			graphId,

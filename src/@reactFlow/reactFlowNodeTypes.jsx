@@ -3,38 +3,52 @@ import { memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import styled from 'styled-components';
 
+import {
+	COMPACT_DAG_NODE_SIZE,
+	COMPACT_FOLDER_NODE_SIZE,
+	DAG_NODE_SIZE,
+	FOLDER_NODE_SIZE
+} from '@graphLayout/constants';
 import { GRAPH_VISUAL_THEME } from '@graphLayout';
 
 import { useReactFlowInteraction } from './reactFlowInteractionContext';
 
+function labelAreaForNode(width, height, folder) {
+	const horizontalInset = folder ? 16 : 12;
+	return {
+		width: Math.max(0, width - horizontalInset),
+		height: Math.max(0, height - 10)
+	};
+}
+
 const NodeShell = styled.div`
 	position: relative;
 	box-sizing: border-box;
-	width: 100%;
-	height: 100%;
-	padding: ${({ $compact, $folder }) =>
-		$compact ? '0' : $folder ? '8px 28px 8px 10px' : '8px 10px'};
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: ${({ $width }) => $width}px;
+	height: ${({ $height }) => $height}px;
+	min-width: ${({ $width }) => $width}px;
+	min-height: ${({ $height }) => $height}px;
+	max-width: ${({ $width }) => $width}px;
+	max-height: ${({ $height }) => $height}px;
+	padding: ${({ $folder, $compact }) => {
+		if ($compact) return '0';
+		if ($folder) return '5px 28px 5px 8px';
+		return '5px 6px';
+	}};
 	border-radius: ${({ $compact }) => $compact ? '4px' : '8px'};
 	border: ${({ $compact, $folder, $selected }) => {
-		const width = $selected ? '2px' : $compact ? '1px' : '1.5px';
-		const color = $selected ?
-			'#2563eb' :
-			$folder ?
-				GRAPH_VISUAL_THEME.folderStroke :
-				GRAPH_VISUAL_THEME.nodeStroke;
-		return `${width} solid ${color}`;
+		if ($selected) return '2px solid #2563eb';
+		if ($compact) return `1px solid ${$folder ? GRAPH_VISUAL_THEME.folderStroke : GRAPH_VISUAL_THEME.nodeStroke}`;
+		if ($folder) return `2px solid ${GRAPH_VISUAL_THEME.folderStroke}`;
+		return `1.5px solid ${GRAPH_VISUAL_THEME.nodeStroke}`;
 	}};
 	background: ${({ $folder, $selected }) =>
 		$selected ? '#eff6ff' : $folder ? GRAPH_VISUAL_THEME.folderFill : GRAPH_VISUAL_THEME.nodeFill};
 	color: ${GRAPH_VISUAL_THEME.nodeText};
 	font-size: ${({ $compact }) => $compact ? '0' : '11px'};
-	line-height: 1.25;
-	text-align: center;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	gap: 2px;
 	cursor: default;
 	pointer-events: all;
 	box-shadow: ${({ $compact, $selected }) =>
@@ -42,16 +56,31 @@ const NodeShell = styled.div`
 	overflow: hidden;
 `;
 
-const NodeLabel = styled.span`
+const LabelBox = styled.div`
+	box-sizing: border-box;
+	flex: 0 1 auto;
 	width: 100%;
-	max-width: 100%;
+	max-width: ${({ $labelWidth }) => $labelWidth}px;
+	height: ${({ $labelHeight }) => $labelHeight}px;
+	max-height: ${({ $labelHeight }) => $labelHeight}px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 	overflow: hidden;
-	display: -webkit-box;
-	-webkit-box-orient: vertical;
-	-webkit-line-clamp: 3;
-	line-clamp: 3;
-	word-break: break-word;
-	overflow-wrap: anywhere;
+	pointer-events: none;
+`;
+
+const LabelText = styled.span`
+	display: block;
+	width: 100%;
+	max-height: 100%;
+	font-size: 11px;
+	line-height: 1.25;
+	text-align: center;
+	white-space: normal;
+	overflow: hidden;
+	overflow-wrap: break-word;
+	word-break: normal;
 `;
 
 const FolderExpandButton = styled.button`
@@ -180,14 +209,24 @@ function useGroupCollapse(id) {
 	return handleCollapse;
 }
 
+function nodeDimensions(data, fallback) {
+	const width = data.width ?? fallback.width;
+	const height = data.height ?? fallback.height;
+	return { width, height };
+}
+
 const DagNode = memo(function DagNode({ id, data }) {
 	const selected = useNodeSelection(id);
 	const label = data.fullLabel ?? data.label;
+	const { width, height } = nodeDimensions(data, DAG_NODE_SIZE);
+	const labelArea = labelAreaForNode(width, height, false);
 
 	return (
-		<NodeShell $selected={selected} title={label}>
+		<NodeShell $selected={selected} $width={width} $height={height} title={label}>
 			<Handle type="target" position={Position.Top} style={{ opacity: 0 }} />
-			<NodeLabel>{label}</NodeLabel>
+			<LabelBox $labelWidth={labelArea.width} $labelHeight={labelArea.height}>
+				<LabelText>{label}</LabelText>
+			</LabelBox>
 			<Handle type="source" position={Position.Bottom} style={{ opacity: 0 }} />
 		</NodeShell>);
 
@@ -197,9 +236,11 @@ const FolderNode = memo(function FolderNode({ id, data }) {
 	const selected = useNodeSelection(id);
 	const { canExpand, handleExpand } = useFolderExpand(id);
 	const label = data.fullLabel ?? data.label;
+	const { width, height } = nodeDimensions(data, FOLDER_NODE_SIZE);
+	const labelArea = labelAreaForNode(width, height, true);
 
 	return (
-		<NodeShell $folder $selected={selected} title={label}>
+		<NodeShell $folder $selected={selected} $width={width} $height={height} title={label}>
 			<Handle type="target" position={Position.Top} style={{ opacity: 0 }} />
 			<FolderExpandButton
 				type="button"
@@ -209,7 +250,9 @@ const FolderNode = memo(function FolderNode({ id, data }) {
 
 				+
 			</FolderExpandButton>
-			<NodeLabel>{label}</NodeLabel>
+			<LabelBox $labelWidth={labelArea.width} $labelHeight={labelArea.height}>
+				<LabelText>{label}</LabelText>
+			</LabelBox>
 			<Handle type="source" position={Position.Bottom} style={{ opacity: 0 }} />
 		</NodeShell>
 	);
@@ -217,9 +260,10 @@ const FolderNode = memo(function FolderNode({ id, data }) {
 
 const CompactDagNode = memo(function CompactDagNode({ id, data }) {
 	const selected = useNodeSelection(id);
+	const { width, height } = nodeDimensions(data, COMPACT_DAG_NODE_SIZE);
 
 	return (
-		<NodeShell $compact $selected={selected} title={data.fullLabel ?? data.label}>
+		<NodeShell $compact $selected={selected} $width={width} $height={height} title={data.fullLabel ?? data.label}>
 			<Handle type="target" position={Position.Top} style={{ opacity: 0, width: 1, height: 1 }} />
 			<Handle type="source" position={Position.Bottom} style={{ opacity: 0, width: 1, height: 1 }} />
 		</NodeShell>
@@ -229,9 +273,10 @@ const CompactDagNode = memo(function CompactDagNode({ id, data }) {
 const CompactFolderNode = memo(function CompactFolderNode({ id, data }) {
 	const selected = useNodeSelection(id);
 	const { canExpand, handleExpand } = useFolderExpand(id);
+	const { width, height } = nodeDimensions(data, COMPACT_FOLDER_NODE_SIZE);
 
 	return (
-		<NodeShell $compact $folder $selected={selected} title={data.fullLabel ?? data.label}>
+		<NodeShell $compact $folder $selected={selected} $width={width} $height={height} title={data.fullLabel ?? data.label}>
 			<Handle type="target" position={Position.Top} style={{ opacity: 0, width: 1, height: 1 }} />
 			<FolderExpandButton
 				type="button"
@@ -251,13 +296,13 @@ const CompactFolderNode = memo(function CompactFolderNode({ id, data }) {
 const GroupNode = memo(function GroupNode({ id, data }) {
 	const selected = useNodeSelection(id);
 	const handleCollapse = useGroupCollapse(id);
-	const label = data.fullLabel ?? data.label;
+	const fullLabel = data.fullLabel ?? data.label;
 
 	return (
 		<GroupShell $selected={selected}>
 			<Handle type="target" position={Position.Top} style={{ opacity: 0, width: 1, height: 1 }} />
 			<GroupHeader>
-				<GroupTitle title={label}>{data.label}</GroupTitle>
+				<GroupTitle title={fullLabel}>{data.label}</GroupTitle>
 				<GroupCollapseButton type="button" title="Свернуть подграф" onClick={handleCollapse}>
 					−
 				</GroupCollapseButton>
@@ -270,12 +315,13 @@ const GroupNode = memo(function GroupNode({ id, data }) {
 const CompactGroupNode = memo(function CompactGroupNode({ id, data }) {
 	const selected = useNodeSelection(id);
 	const handleCollapse = useGroupCollapse(id);
+	const fullLabel = data.fullLabel ?? data.label;
 
 	return (
 		<GroupShell $compact $selected={selected}>
 			<Handle type="target" position={Position.Top} style={{ opacity: 0, width: 1, height: 1 }} />
 			<GroupHeader $compact>
-				<GroupTitle title={data.fullLabel ?? data.label}>{data.label}</GroupTitle>
+				<GroupTitle title={fullLabel}>{data.label}</GroupTitle>
 				<GroupCollapseButton type="button" title="Свернуть подграф" onClick={handleCollapse}>
 					−
 				</GroupCollapseButton>
